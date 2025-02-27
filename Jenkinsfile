@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        CHROME_DRIVER_PATH = "/usr/local/bin/chromedriver" // Kiểm tra đường dẫn trên server
+        CHROME_DRIVER_PATH = "C:\\Program Files\\ChromeDriver\\chromedriver.exe" // Kiểm tra đường dẫn trên Windows
     }
 
     stages {
@@ -14,43 +14,47 @@ pipeline {
 
         stage('Setup ChromeDriver') {
             steps {
-                sh '''
-                echo "🔍 Kiểm tra ChromeDriver..."
-                if [ -f $CHROME_DRIVER_PATH ]; then
-                    echo "✅ ChromeDriver đã tồn tại: $CHROME_DRIVER_PATH"
-                    $CHROME_DRIVER_PATH --version
-                else
-                    echo "❌ ChromeDriver KHÔNG tồn tại! Kiểm tra lại cài đặt."
-                    exit 1
-                fi
-                '''
-            }
-        }
-
-        stage('Build') {
-            steps {
-                sh 'mvn clean compile'
+                script {
+                    if (isUnix()) {
+                        sh '''
+                        echo "🔍 Kiểm tra ChromeDriver trên Linux..."
+                        if [ -f $CHROME_DRIVER_PATH ]; then
+                            echo "✅ ChromeDriver tồn tại: $CHROME_DRIVER_PATH"
+                            $CHROME_DRIVER_PATH --version
+                        else
+                            echo "❌ ChromeDriver KHÔNG tồn tại! Kiểm tra lại cài đặt."
+                            exit 1
+                        fi
+                        '''
+                    } else {
+                        bat '''
+                        echo Kiểm tra ChromeDriver trên Windows...
+                        if exist "%CHROME_DRIVER_PATH%" (
+                            echo ✅ ChromeDriver tồn tại: %CHROME_DRIVER_PATH%
+                            "%CHROME_DRIVER_PATH%" --version
+                        ) else (
+                            echo ❌ ChromeDriver KHÔNG tồn tại! Kiểm tra lại cài đặt.
+                            exit /b 1
+                        )
+                        '''
+                    }
+                }
             }
         }
 
         stage('Run Selenium Tests') {
             steps {
-                sh 'mvn test'
+                sh 'mvn clean test'
             }
         }
 
         stage('Post-Test Report') {
             steps {
-                script {
-                    def reports = findFiles(glob: 'target/surefire-reports/*.xml')
-                    if (reports.length > 0) {
-                        junit 'target/surefire-reports/*.xml'
-                    } else {
-                        echo "⚠️ Không tìm thấy JUnit report! Kiểm tra lại quá trình test."
-                    }
-                }
+                junit 'target/surefire-reports/*.xml'
+                echo "✅ Test report đã được xử lý."
             }
         }
     }
 }
+
 
