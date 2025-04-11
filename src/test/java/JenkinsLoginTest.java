@@ -17,8 +17,8 @@ public class JenkinsLoginTest {
     private WebDriver driver;
     private WebDriverWait wait;
     private String jenkinsURL = "http://localhost:8080/login";
-    private String username = "quachvietthanh"; // 🔴 Thay bằng username của bạn
-    private String password = "Tranthanh100";  // 🔴 Thay bằng mật khẩu thật
+    private String username = "quachvietthanh"; //  Thay bằng username của mik
+    private String password = "Tranthanh100";  //  Thay bằng mật khẩu thật
 
     @Before
     public void setUp() {
@@ -35,40 +35,51 @@ public class JenkinsLoginTest {
 
         // Mở trang Jenkins
         driver.get(jenkinsURL);
-        System.out.println("🔗 Mở trang: " + driver.getCurrentUrl());
+        System.out.println(" open page: " + driver.getCurrentUrl());
     }
 
     @Test
-    public void testJenkinsLogin() {
-        // 1️⃣ Đợi đến khi ô nhập username xuất hiện
+    public void testJenkinsLogin() throws InterruptedException {
+        // Đợi đến khi ô nhập username xuất hiện
         WebElement usernameField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.name("j_username")));
-        usernameField.sendKeys(username);
 
-        // 2️⃣ Nhập mật khẩu
+        //  Nhập từng ký tự của username để mô phỏng nhập tay
+        for (char ch : username.toCharArray()) {
+            usernameField.sendKeys(String.valueOf(ch));
+            Thread.sleep(200); //  Chờ 200ms giữa mỗi ký tự
+        }
+
+        //  Đợi đến khi ô nhập password xuất hiện
         WebElement passwordField = driver.findElement(By.name("j_password"));
-        passwordField.sendKeys(password);
 
-        // 3️⃣ Nhấn nút "Sign in"
+        //  Nhập từng ký tự của password để mô phỏng nhập tay
+        for (char ch : password.toCharArray()) {
+            passwordField.sendKeys(String.valueOf(ch));
+            Thread.sleep(200); //  Chờ 200ms giữa mỗi ký tự
+        }
+
+        //  Nhấn nút "Sign in"
         WebElement loginButton = driver.findElement(By.name("Submit"));
+        Thread.sleep(500); // Chờ 500ms để nhìn thấy form đã được nhập đầy đủ
         loginButton.click();
-        System.out.println("🔹 Đã nhấn Sign in");
+        System.out.println(" Đã nhấn Sign in");
 
-        // 4️⃣ Kiểm tra URL sau đăng nhập
+        //  Kiểm tra URL sau đăng nhập
         wait.until(ExpectedConditions.urlContains("/"));
         String currentURL = driver.getCurrentUrl();
         String actualTitle = driver.getTitle();
 
-        // 5️⃣ Kiểm tra đăng nhập thành công
-        assertTrue("❌ Đăng nhập thất bại!", currentURL.contains("/") || actualTitle.contains("Dashboard"));
-        System.out.println("✔️ Đăng nhập thành công!");
+        //  Kiểm tra đăng nhập thành công
+        assertTrue(" Đăng nhập thất bại!", currentURL.contains("/") || actualTitle.contains("Dashboard"));
+        System.out.println(" Đăng nhập thành công!");
     }
 
     @After
     public void tearDown() throws InterruptedException {
         if (driver != null) {
-            Thread.sleep(5000); // ⏳ Chờ 5 giây trước khi đóng trình duyệt
+            Thread.sleep(10000); //  Chờ 10 giây trước khi đóng trình duyệt
             driver.quit();
-            System.out.println("🚀 Đã đóng trình duyệt sau 5 giây.");
+            System.out.println(" Đã đóng trình duyệt sau 10 giây.");
         }
     }
 }
